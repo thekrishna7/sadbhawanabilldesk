@@ -1,0 +1,224 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id            String   @id @default(cuid())
+  email         String   @unique
+  name          String   @default("")
+  phone         String   @default("")
+  password      String
+  profilePhoto  String   @default("")
+  darkMode      Boolean  @default(false)
+  language      String   @default("en")
+  notifications Boolean  @default(true)
+  defaultTaxRate String   @default("18")
+  defaultDueDays String   @default("30")
+  invoiceFormat  String   @default("INV-{YYYY}-{000}")
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  businessProfile   BusinessProfile?
+  customers         Customer[]
+  invoices          Invoice[]
+  termsConditions   TermsCondition[]
+  payments          Payment[]
+  activityLogs      ActivityLog[]
+  recurringInvoices RecurringInvoice[]
+  userNotifications Notification[]
+  pushSubscriptions PushSubscription[]
+}
+
+model BusinessProfile {
+  id             String  @id @default(cuid())
+  userId         String  @unique
+  companyName    String  @default("")
+  companyAddress String  @default("")
+  companyPhone   String  @default("")
+  companyEmail   String  @default("")
+  companyWebsite String  @default("")
+  gstNumber      String  @default("")
+  panNumber      String  @default("")
+  companyLogo    String  @default("")
+
+  // Bank details
+  accountHolderName String  @default("")
+  bankName          String  @default("")
+  accountNumber     String  @default("")
+  ifscCode          String  @default("")
+  branchName        String  @default("")
+  qrCode            String  @default("")
+
+  // Signature & seal
+  signatureImage  String  @default("")
+  sealImage       String  @default("")
+  sealCompanyName String  @default("")
+  sealDetail      String  @default("")
+  useSeal         Boolean @default(false)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Customer {
+  id        String   @id @default(cuid())
+  userId    String
+  name      String
+  phone     String   @default("")
+  email     String   @default("")
+  address   String   @default("")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  invoices Invoice[]
+}
+
+model Invoice {
+  id             String   @id @default(cuid())
+  userId         String
+  customerId     String?
+  invoiceNumber  String   @unique
+  invoiceDate    String
+  dueDate        String
+  status         String   @default("draft") // draft, sent, paid, overdue, deleted
+
+  // Bill To
+  billToName    String @default("")
+  billToPhone   String @default("")
+  billToEmail   String @default("")
+  billToAddress String @default("")
+
+  // Totals
+  subtotal        Float @default(0)
+  taxTotal        Float @default(0)
+  discountText    String @default("")
+  discountTotal   Float @default(0)
+  grandTotal      Float @default(0)
+  receivedAmount  Float @default(0)
+  previousBalance Float @default(0)
+  currentBalance  Float @default(0)
+  amountInWords   String @default("")
+
+  // Currency
+  currency String @default("INR")
+
+  // Terms
+  termsText String @default("")
+
+  // Soft delete
+  deletedAt         DateTime?
+  permanentDeleteAt DateTime?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user     User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  customer Customer?     @relation(fields: [customerId], references: [id], onDelete: SetNull)
+  items    InvoiceItem[]
+  payments Payment[]
+}
+
+model InvoiceItem {
+  id          String @id @default(cuid())
+  invoiceId   String
+  description String
+  quantity    Float  @default(1)
+  rate        Float  @default(0)
+  taxPercent  Float  @default(0)
+  amount      Float  @default(0)
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+}
+
+model Payment {
+  id        String   @id @default(cuid())
+  invoiceId String
+  userId    String
+  amount    Float
+  method    String   @default("cash") // cash, bank_transfer, upi, cheque, other
+  reference String   @default("")
+  note      String   @default("")
+  paidAt    DateTime @default(now())
+  createdAt DateTime @default(now())
+
+  invoice Invoice @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  user    User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model ActivityLog {
+  id          String   @id @default(cuid())
+  userId      String
+  action      String   // created, updated, deleted, sent, paid, overdue, recovered, payment_recorded
+  entityType  String   @default("invoice") // invoice, customer, profile
+  entityId    String   @default("")
+  description String   @default("")
+  metadata    String   @default("{}") // JSON string for additional data
+  createdAt   DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model TermsCondition {
+  id     String @id @default(cuid())
+  userId String
+  text   String
+  order  Int    @default(0)
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model RecurringInvoice {
+  id           String  @id @default(cuid())
+  userId       String
+  templateName String  @default("") // e.g. "Monthly Retainer"
+  frequency    String  @default("monthly") // weekly, monthly, quarterly, yearly
+  nextDate     String  // next generation date
+  isActive     Boolean @default(true)
+
+  // Template data (copied from invoice)
+  billToName    String @default("")
+  billToPhone   String @default("")
+  billToEmail   String @default("")
+  billToAddress String @default("")
+  currency      String @default("INR")
+
+  items     String @default("[]") // JSON string of items array
+  termsText String @default("")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ===== In-App Notification Model =====
+model Notification {
+  id         String   @id @default(cuid())
+  userId     String
+  type       String   @default("info") // invoice_created, invoice_sent, payment_received, overdue, reminder, system
+  title      String
+  message    String   @default("")
+  read       Boolean  @default(false)
+  entityId   String   @default("") // e.g. invoiceId
+  entityType String   @default("") // invoice, payment, system
+  createdAt  DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// ===== Web Push Subscription Model =====
+model PushSubscription {
+  id        String   @id @default(cuid())
+  userId    String
+  endpoint  String   @unique
+  p256dh    String
+  auth      String
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
