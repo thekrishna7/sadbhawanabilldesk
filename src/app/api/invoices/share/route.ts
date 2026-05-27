@@ -71,6 +71,7 @@ export async function POST(req: NextRequest) {
       currency: invoice.currency,
       message,
       items: invoice.items,
+      invoiceId: invoice.id,
     })
 
     const plainText = `

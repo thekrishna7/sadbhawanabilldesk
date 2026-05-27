@@ -76,6 +76,7 @@ export function buildInvoiceEmailHtml({
   currency,
   message,
   items,
+  invoiceId,
 }: {
   companyName: string
   customerName: string
@@ -85,6 +86,7 @@ export function buildInvoiceEmailHtml({
   currency: string
   message?: string
   items: { description: string }[]
+  invoiceId: string
 }) {
   const currencySymbol = currency === 'INR' ? '₹' : currency === 'USD' ? '$' : currency === 'EUR' ? '€' : currency
   const itemList = items
@@ -104,19 +106,19 @@ export function buildInvoiceEmailHtml({
   <table width="100%" cellpadding="0" cellspacing="0" style="background:#f4f6fb;padding:32px 0;">
     <tr>
       <td align="center">
-        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(0,87,217,0.10);">
+        <table width="600" cellpadding="0" cellspacing="0" style="background:#ffffff;border-radius:12px;overflow:hidden;box-shadow:0 4px 24px rgba(5,150,105,0.08);border:1px solid #e8eef8;">
           <!-- Header -->
           <tr>
-            <td style="background:linear-gradient(135deg,#0057D9 0%,#003A99 100%);padding:32px 40px;text-align:center;">
+            <td style="background:linear-gradient(135deg,#059669 0%,#047857 100%);padding:32px 40px;text-align:center;">
               <h1 style="margin:0;color:#ffffff;font-size:22px;font-weight:700;letter-spacing:1px;">
                 ${companyName}
               </h1>
-              <p style="margin:8px 0 0;color:#B3CFFF;font-size:13px;">Invoice Notification</p>
+              <p style="margin:8px 0 0;color:#a7f3d0;font-size:13px;">Invoice Notification</p>
             </td>
           </tr>
           <!-- Gold divider -->
           <tr>
-            <td style="background:#F5A623;height:4px;"></td>
+            <td style="background:#f59e0b;height:4px;"></td>
           </tr>
           <!-- Body -->
           <tr>
@@ -128,21 +130,21 @@ export function buildInvoiceEmailHtml({
               </p>
 
               <!-- Invoice Box -->
-              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0f5ff;border-radius:8px;border:1px solid #d0e0ff;margin-bottom:24px;">
+              <table width="100%" cellpadding="0" cellspacing="0" style="background:#f0fdf4;border-radius:8px;border:1px solid #bbf7d0;margin-bottom:24px;">
                 <tr>
                   <td style="padding:20px 24px;">
                     <table width="100%" cellpadding="0" cellspacing="0">
                       <tr>
                         <td style="color:#666;font-size:13px;padding:6px 0;">Invoice Number</td>
-                        <td style="color:#0057D9;font-weight:700;font-size:13px;text-align:right;">${invoiceNumber}</td>
+                        <td style="color:#059669;font-weight:700;font-size:13px;text-align:right;">${invoiceNumber}</td>
                       </tr>
                       <tr>
                         <td style="color:#666;font-size:13px;padding:6px 0;">Amount Due</td>
-                        <td style="color:#0057D9;font-weight:700;font-size:20px;text-align:right;">${currencySymbol}${amount}</td>
+                        <td style="color:#059669;font-weight:700;font-size:20px;text-align:right;">${currencySymbol}${amount}</td>
                       </tr>
                       <tr>
                         <td style="color:#666;font-size:13px;padding:6px 0;">Due Date</td>
-                        <td style="color:#e65c00;font-weight:600;font-size:13px;text-align:right;">${dueDate}</td>
+                        <td style="color:#d97706;font-weight:600;font-size:13px;text-align:right;">${dueDate}</td>
                       </tr>
                     </table>
                   </td>
@@ -158,11 +160,18 @@ export function buildInvoiceEmailHtml({
 
               ${
                 message
-                  ? `<div style="background:#fff8e1;border-left:4px solid #F5A623;padding:12px 16px;border-radius:4px;margin-bottom:24px;">
-                <p style="margin:0;color:#7a5200;font-size:13px;font-style:italic;">"${message}"</p>
+                  ? `<div style="background:#fffbeb;border-left:4px solid #f59e0b;padding:12px 16px;border-radius:4px;margin-bottom:24px;">
+                <p style="margin:0;color:#78350f;font-size:13px;font-style:italic;">"${message}"</p>
               </div>`
                   : ''
               }
+
+              <!-- CTA Button to Download & View Invoice -->
+              <div style="text-align: center; margin: 32px 0;">
+                <a href="https://sadbhawanabilldesk.vercel.app/?publicInvoiceId=${invoiceId}" target="_blank" style="background-color: #059669; color: #ffffff; padding: 12px 28px; text-decoration: none; border-radius: 8px; font-weight: bold; font-size: 15px; display: inline-block; box-shadow: 0 4px 12px rgba(5,150,105,0.25);">
+                  Download & View Invoice
+                </a>
+              </div>
 
               <p style="margin:0 0 8px;color:#555;font-size:14px;line-height:1.6;">
                 If you have any questions regarding this invoice, please don't hesitate to contact us.
@@ -174,7 +183,7 @@ export function buildInvoiceEmailHtml({
           <tr>
             <td style="background:#f8faff;border-top:1px solid #e8eef8;padding:20px 40px;text-align:center;">
               <p style="margin:0;color:#888;font-size:12px;">
-                Powered by <strong style="color:#0057D9;">Sadbhawana BillDesk</strong> — Smart Billing Platform
+                Powered by <strong style="color:#059669;">Sadbhawana BillDesk</strong> — Smart Billing Platform
               </p>
             </td>
           </tr>

@@ -24,6 +24,7 @@ const RecurringInvoicesPage = dynamic(() => import('@/components/invoice/Recurri
 
 const ProfilePage = dynamic(() => import('@/components/profile/ProfilePage'), { ssr: false })
 const SettingsPage = dynamic(() => import('@/components/settings/SettingsPage'), { ssr: false })
+const PublicInvoicePreview = dynamic(() => import('@/components/invoice/PublicInvoicePreview'), { ssr: false })
 
 // Landing & Auth
 const LandingPage = dynamic(() => import('@/components/landing/LandingPage'), { ssr: false })
@@ -176,6 +177,17 @@ function AuthRouter() {
 
 export default function Home() {
   const { isAuthenticated, showSplash, user, setUser } = useAppStore()
+  const [publicInvoiceId, setPublicInvoiceId] = React.useState<string | null>(null)
+
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search)
+      const pubId = params.get('publicInvoiceId')
+      if (pubId) {
+        setPublicInvoiceId(pubId)
+      }
+    }
+  }, [])
 
   useEffect(() => {
     if (isAuthenticated && user?.id) {
@@ -205,6 +217,10 @@ export default function Home() {
         .catch(() => {})
     }
   }, [isAuthenticated, user?.id, setUser])
+
+  if (publicInvoiceId) {
+    return <PublicInvoicePreview invoiceId={publicInvoiceId} onClose={() => setPublicInvoiceId(null)} />
+  }
 
   if (showSplash) {
     return <SplashScreen />
