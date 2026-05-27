@@ -36,6 +36,21 @@ export default function RootLayout({
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/favicon-logo.png" />
+        <script dangerouslySetInnerHTML={{ __html: `
+          (function() {
+            var origin = window.location.origin;
+            var isCap = origin.startsWith('capacitor://') || origin.includes('localhost:') || !window.location.host;
+            if (isCap) {
+              var originalFetch = window.fetch;
+              window.fetch = function(input, init) {
+                if (typeof input === 'string' && input.startsWith('/api/')) {
+                  input = 'https://sadbhawanabilldesk.vercel.app' + input;
+                }
+                return originalFetch(input, init);
+              };
+            }
+          })();
+        ` }} />
       </head>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased bg-background text-foreground`}

@@ -1,0 +1,12 @@
+{
+  "expo": {
+    "extra": {
+      "eas": {
+        "projectId": "cd52356a-0a29-41d3-89ca-fed337312dd9"
+      }
+    },
+    "android": {
+      "package": "com.sadbhawanabilldesk.nextjs_tailwind_shadcn_ts"
+    }
+  }
+}
