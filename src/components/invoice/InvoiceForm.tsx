@@ -13,6 +13,10 @@ import {
   Loader2,
   RotateCcw,
   Palette,
+  Building2,
+  Landmark,
+  AlertCircle,
+  ArrowRight,
 } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 
@@ -110,6 +114,43 @@ export default function InvoiceForm() {
   const [recurringTemplateName, setRecurringTemplateName] = useState('')
   const [recurringFrequency, setRecurringFrequency] = useState('monthly')
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  // Profile verification state
+  const [profileLoading, setProfileLoading] = useState(true)
+  const [isProfileSetup, setIsProfileSetup] = useState(true)
+
+  useEffect(() => {
+    if (user?.id) {
+      setProfileLoading(true)
+      fetch(`/api/profile?userId=${user.id}`)
+        .then(res => (res.ok ? res.json() : null))
+        .then(data => {
+          if (data && data.businessProfile) {
+            const bp = data.businessProfile
+            // Check if business details are filled: companyName and companyAddress
+            const hasBusinessDetails = !!(bp.companyName?.trim() && bp.companyAddress?.trim())
+            // Check if bank details are filled: accountHolderName, bankName, accountNumber, and ifscCode
+            const hasBankDetails = !!(bp.accountHolderName?.trim() && bp.bankName?.trim() && bp.accountNumber?.trim() && bp.ifscCode?.trim())
+            
+            if (!hasBusinessDetails || !hasBankDetails) {
+              setIsProfileSetup(false)
+            } else {
+              setIsProfileSetup(true)
+            }
+          } else {
+            setIsProfileSetup(false)
+          }
+        })
+        .catch(() => {
+          setIsProfileSetup(false)
+        })
+        .finally(() => {
+          setProfileLoading(false)
+        })
+    } else {
+      setProfileLoading(false)
+    }
+  }, [user?.id])
 
   // Template state
   const [selectedTemplate, setSelectedTemplate] = useState<TemplateName>(getStoredTemplate)
@@ -418,11 +459,66 @@ export default function InvoiceForm() {
 
 
 
-  if (isLoadingInvoice) {
+  if (profileLoading || isLoadingInvoice) {
     return (
       <div className="flex items-center justify-center min-h-[60vh]">
-        <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+        <div className="flex flex-col items-center gap-3">
+          <Loader2 className="h-8 w-8 animate-spin text-emerald-600" />
+          <p className="text-muted-foreground text-sm">Verifying profile setup...</p>
+        </div>
       </div>
+    )
+  }
+
+  if (!isProfileSetup) {
+    return (
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="max-w-md mx-auto my-12"
+      >
+        <Card className="border-border/50 shadow-2xl relative overflow-hidden bg-white/90 dark:bg-zinc-900/90 backdrop-blur-xl">
+          {/* Top warning line */}
+          <div className="absolute top-0 inset-x-0 h-1.5 bg-gradient-to-r from-amber-500 via-orange-500 to-amber-500" />
+          
+          <CardContent className="pt-8 pb-6 px-6 text-center space-y-6">
+            <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-full bg-amber-50 dark:bg-amber-950/50 border border-amber-200 dark:border-amber-900/50 text-amber-600 dark:text-amber-400">
+              <AlertCircle className="h-8 w-8" />
+            </div>
+
+            <div className="space-y-2">
+              <h2 className="text-xl font-bold tracking-tight">Complete Profile Setup</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">
+                Firstly setup your profile business details and bank details. After that only you can create invoices.
+              </p>
+            </div>
+
+            {/* Checklist */}
+            <div className="rounded-xl bg-muted/50 p-4 text-left space-y-3 border border-border/30">
+              <div className="flex items-center gap-3 text-sm">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <Building2 className="h-3.5 w-3.5" />
+                </div>
+                <span className="font-medium text-foreground">Business Details (Company Name, Address)</span>
+              </div>
+              <div className="flex items-center gap-3 text-sm">
+                <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-emerald-500/10 text-emerald-600 dark:text-emerald-400">
+                  <Landmark className="h-3.5 w-3.5" />
+                </div>
+                <span className="font-medium text-foreground">Bank Details (Account Name, Bank, A/C No, IFSC)</span>
+              </div>
+            </div>
+
+            <Button
+              onClick={() => setCurrentView('profile')}
+              className="w-full bg-gradient-to-r from-emerald-500 to-teal-600 hover:from-emerald-600 hover:to-teal-700 text-white font-medium shadow-md shadow-emerald-500/10 group h-11"
+            >
+              <span>Go to Profile Setup</span>
+              <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </CardContent>
+        </Card>
+      </motion.div>
     )
   }
 

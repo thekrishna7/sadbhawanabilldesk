@@ -22,20 +22,6 @@ export async function POST(req: NextRequest) {
     await db.businessProfile.create({
       data: {
         userId: user.id,
-        companyName: 'Sadbhawana Publication',
-        companyAddress: 'Near Rajeev Gandhi School Ambah, Vallabh Colony Ambah, Morena (M.P.)',
-        companyPhone: '+91 7987484155',
-        companyEmail: 'sadbhawanapublication@gmail.com',
-        companyLogo: '/logo.png',
-        accountHolderName: 'Sadbhawana Publication',
-        bankName: 'Punjab National Bank (PNB), Ambah',
-        accountNumber: '0512102100000903',
-        ifscCode: 'PUNB0051210',
-        branchName: 'Ambah',
-        gstNumber: 'GTZPS4321G',
-        panNumber: 'GTZPS4321G',
-        sealCompanyName: 'Sadbhawana Publication',
-        sealDetail: 'Ambah Morena',
       }
     })
 
