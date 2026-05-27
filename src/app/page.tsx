@@ -87,29 +87,46 @@ function DashboardRouter() {
 
 function SplashScreen() {
   const { setShowSplash } = useAppStore()
+  const timeoutRef = React.useRef<ReturnType<typeof setTimeout> | null>(null)
+  const videoRef = React.useRef<HTMLVideoElement>(null)
 
   // Set this to true if you want to use a video logo animation instead of static image
   const USE_VIDEO_LOGO = true
 
   useEffect(() => {
-    // If not using video logo, run default 2.5s timer
-    if (!USE_VIDEO_LOGO) {
-      const timer = setTimeout(() => setShowSplash(false), 2800)
-      return () => clearTimeout(timer)
-    } else {
-      // Safety fallback timer of 8 seconds in case video doesn't play or load
-      const timer = setTimeout(() => setShowSplash(false), 8000)
-      return () => clearTimeout(timer)
+    // Start safety fallback timer (in case video fails to load/play)
+    // If not using video logo, it runs default 2.8s timer
+    const delay = USE_VIDEO_LOGO ? 12000 : 2800 // 12s safety timeout for video
+    timeoutRef.current = setTimeout(() => {
+      setShowSplash(false)
+    }, delay)
+
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current)
     }
   }, [setShowSplash, USE_VIDEO_LOGO])
 
+  const handleVideoPlay = () => {
+    // Once the video successfully starts playing, we clear the safety timeout
+    // so it will ONLY close when the video naturally ends (onEnded)
+    if (timeoutRef.current) {
+      clearTimeout(timeoutRef.current)
+      timeoutRef.current = null
+      console.log('[Splash] Video started playing. Cleared safety timeout.')
+    }
+  }
+
+  const handleVideoEnd = () => {
+    setShowSplash(false)
+    console.log('[Splash] Video ended. Closing splash screen.')
+  }
+
   return (
     <motion.div
-      className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-zinc-950 text-foreground"
+      className="min-h-screen flex flex-col items-center justify-center bg-white dark:bg-zinc-950 text-foreground select-none"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       exit={{ opacity: 0 }}
-      onClick={() => setShowSplash(false)}
     >
       <motion.div
         initial={{ scale: 0.5, opacity: 0 }}
@@ -120,11 +137,13 @@ function SplashScreen() {
         <div className="size-56 rounded-3xl bg-white/10 dark:bg-white/5 backdrop-blur-md flex items-center justify-center shadow-2xl overflow-hidden border border-border/50">
           {USE_VIDEO_LOGO ? (
             <video
+              ref={videoRef}
               src="/logo-animation.mp4"
               autoPlay
               muted
               playsInline
-              onEnded={() => setShowSplash(false)}
+              onPlay={handleVideoPlay}
+              onEnded={handleVideoEnd}
               className="size-full object-cover"
             />
           ) : (
