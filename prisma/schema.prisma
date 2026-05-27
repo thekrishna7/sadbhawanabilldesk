@@ -21,6 +21,8 @@ model User {
   defaultTaxRate String   @default("18")
   defaultDueDays String   @default("30")
   invoiceFormat  String   @default("INV-{YYYY}-{000}")
+  resetCode      String?
+  resetCodeExpires DateTime?
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 
