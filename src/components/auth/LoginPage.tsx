@@ -211,17 +211,33 @@ export default function LoginPage() {
               <Button
                 variant="outline"
                 className="w-full"
-                onClick={() => {
-                  login({
-                    id: 'demo-user',
-                    name: 'Demo User',
-                    email: 'demo@billflow.com',
-                    phone: '+91 9876543210',
-                  })
-                  toast.success('Welcome to the demo!')
+                disabled={isLoading}
+                onClick={async () => {
+                  setIsLoading(true)
+                  try {
+                    const res = await fetch('/api/auth/demo', { method: 'POST' })
+                    const data = await res.json()
+                    if (!res.ok) {
+                      toast.error(data.error || 'Failed to initialize demo')
+                      return
+                    }
+                    login(data.user)
+                    toast.success('Welcome to the demo!')
+                  } catch {
+                    toast.error('Network error. Please try again.')
+                  } finally {
+                    setIsLoading(false)
+                  }
                 }}
               >
-                Try Demo Account
+                {isLoading ? (
+                  <>
+                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                    Loading demo...
+                  </>
+                ) : (
+                  'Try Demo Account'
+                )}
               </Button>
             </div>
 
