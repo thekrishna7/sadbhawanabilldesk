@@ -73,6 +73,28 @@ export default function PublicInvoicePreview({ invoiceId, onClose }: { invoiceId
   const [businessProfile, setBusinessProfile] = useState<BusinessProfile | null>(null)
   const [loading, setLoading] = useState(true)
   const printRef = useRef<HTMLDivElement>(null)
+  const containerRef = useRef<HTMLDivElement>(null)
+  const [scale, setScale] = useState(1)
+
+  useEffect(() => {
+    const updateScale = () => {
+      if (containerRef.current) {
+        const containerWidth = containerRef.current.clientWidth
+        if (containerWidth < 794) {
+          setScale(containerWidth / 794)
+        } else {
+          setScale(1)
+        }
+      }
+    }
+    
+    const timer = setTimeout(updateScale, 150)
+    window.addEventListener('resize', updateScale)
+    return () => {
+      clearTimeout(timer)
+      window.removeEventListener('resize', updateScale)
+    }
+  }, [invoice])
 
   useEffect(() => {
     if (!invoiceId) return
@@ -219,10 +241,21 @@ export default function PublicInvoicePreview({ invoiceId, onClose }: { invoiceId
       </div>
 
       {/* Invoice Document */}
-      <div
-        ref={printRef}
-        className="bg-white text-gray-900 shadow-xl border border-gray-200 mx-auto w-full max-w-[21cm] min-h-[29.7cm] print:min-h-0 print-single-page flex flex-col justify-between"
+      <div 
+        ref={containerRef} 
+        className="w-full flex justify-center overflow-hidden print:overflow-visible print:h-auto"
+        style={{ height: scale < 1 ? `${1122 * scale}px` : 'auto' }}
       >
+        <div
+          ref={printRef}
+          style={scale < 1 ? {
+            transform: `scale(${scale})`,
+            transformOrigin: 'top center',
+            width: '794px',
+            height: '1122px',
+          } : undefined}
+          className="bg-white text-gray-900 shadow-xl border border-gray-200 w-full max-w-[21cm] min-h-[29.7cm] print:min-h-0 print-single-page flex flex-col justify-between shrink-0 print:transform-none print:w-full print:h-full"
+        >
         <div className="p-6 md:p-8 flex-1 flex flex-col justify-between space-y-4">
           <div className="space-y-2">
             {/* Header line */}
@@ -470,5 +503,6 @@ export default function PublicInvoicePreview({ invoiceId, onClose }: { invoiceId
         </div>
       </div>
     </div>
+  </div>
   )
 }
