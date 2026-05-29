@@ -5,7 +5,19 @@ const config: CapacitorConfig = {
   appName: 'Sadbhawana BillDesk',
   webDir: 'out',
   server: {
-    androidScheme: 'https'
+    androidScheme: 'https',
+    url: 'https://sadbhawanabilldesk.vercel.app',
+    allowNavigation: ['sadbhawanabilldesk.vercel.app'],
+    errorPath: 'offline.html'
+  },
+  plugins: {
+    SplashScreen: {
+      launchShowDuration: 2000,
+      launchAutoHide: true,
+      backgroundColor: '#0d1b2a',
+      androidScaleType: 'CENTER_CROP',
+      showSpinner: false
+    }
   }
 };
 

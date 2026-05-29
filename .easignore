@@ -1,0 +1,6 @@
+# Ignore root-level lockfiles and directories to prevent npm ci conflicts in the mobile subdirectory
+/package-lock.json
+/bun.lock
+/node_modules
+/.next
+/out
