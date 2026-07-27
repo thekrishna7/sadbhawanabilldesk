@@ -198,7 +198,7 @@ npx cap open android
 ## 👤 Author & Maintainer
 
 **Krishna Sharma**
-- **Website:** [The Digital Fixer](https://thedigitalfixer.com)
+- **Website:** [The Digital Fixer](https://thedigitalfixer.in)
 - **Organization:** Sadbhawana Publication
 - **GitHub:** [@thekrishna7](https://github.com/thekrishna7)
 
