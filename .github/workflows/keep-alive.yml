@@ -1,0 +1,18 @@
+name: Supabase Database Keep-Alive
+
+on:
+  schedule:
+    # Runs every 3 days at 06:00 AM UTC (prevents Supabase 7-day inactivity pause)
+    - cron: '0 6 */3 * *'
+  workflow_dispatch: # Allows manual run from GitHub Actions tab
+
+jobs:
+  ping-database:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping App API & Database
+        run: |
+          echo "Sending keep-alive ping to prevent Supabase auto-pause..."
+          curl -s -L "https://sadbhawanabilldesk.vercel.app/api/debug" || true
+          curl -s -L "https://sadbhawanabilldesk.vercel.app" || true
+          echo "Keep-alive ping completed successfully!"
