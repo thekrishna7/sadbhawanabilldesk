@@ -418,7 +418,10 @@ export default function ProfilePage() {
   }
 
   const saveBusiness = async () => {
-    if (!userId) return
+    if (!userId) {
+      toast.error('User session missing')
+      return
+    }
     setSavingBusiness(true)
     try {
       const res = await fetch('/api/profile/business', {
@@ -436,6 +439,7 @@ export default function ProfilePage() {
           companyLogo: business.companyLogo,
         }),
       })
+      const data = await res.json().catch(() => ({}))
       if (res.ok) {
         toast.success('Business details saved')
         if (user) {
@@ -445,10 +449,10 @@ export default function ProfilePage() {
           })
         }
       } else {
-        toast.error('Failed to save')
+        toast.error(data.error || 'Failed to save business details')
       }
-    } catch {
-      toast.error('Failed to save')
+    } catch (err: any) {
+      toast.error(err?.message || 'Failed to save business details')
     } finally {
       setSavingBusiness(false)
     }

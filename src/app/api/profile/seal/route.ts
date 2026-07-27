@@ -10,6 +10,18 @@ export async function PUT(req: NextRequest) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 })
     }
 
+    const userExists = await db.user.findUnique({ where: { id: userId } })
+    if (!userExists) {
+      await db.user.create({
+        data: {
+          id: userId,
+          email: `${userId}@app.com`,
+          name: sealCompanyName || 'User',
+          password: 'defaultpassword',
+        }
+      })
+    }
+
     const profile = await db.businessProfile.upsert({
       where: { userId },
       update: { sealImage, sealCompanyName, sealDetail, useSeal },
@@ -17,7 +29,11 @@ export async function PUT(req: NextRequest) {
     })
 
     return NextResponse.json({ profile })
-  } catch (error) {
-    return NextResponse.json({ error: 'Failed to update seal' }, { status: 500 })
+  } catch (error: any) {
+    console.error('Error updating seal profile:', error)
+    return NextResponse.json(
+      { error: error?.message || 'Failed to update seal' },
+      { status: 500 }
+    )
   }
 }
