@@ -21,6 +21,7 @@ const InvoicePreview = dynamic(() => import('@/components/invoice/InvoicePreview
 const InvoiceList = dynamic(() => import('@/components/invoice/InvoiceList'), { ssr: false })
 const CustomersPage = dynamic(() => import('@/components/invoice/CustomersPage'), { ssr: false })
 const RecurringInvoicesPage = dynamic(() => import('@/components/invoice/RecurringInvoicesPage'), { ssr: false })
+const InventoryPage = dynamic(() => import('@/components/inventory/InventoryPage'), { ssr: false })
 
 const ProfilePage = dynamic(() => import('@/components/profile/ProfilePage'), { ssr: false })
 const SettingsPage = dynamic(() => import('@/components/settings/SettingsPage'), { ssr: false })
@@ -48,6 +49,8 @@ function DashboardRouter() {
         return <InvoiceForm />
       case 'preview-invoice':
         return <InvoicePreview />
+      case 'inventory':
+        return <InventoryPage />
       case 'customers':
         return <CustomersPage />
       case 'recurring':

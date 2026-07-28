@@ -20,6 +20,7 @@ import {
   Sparkles,
   Bell,
   RefreshCw,
+  Package,
 } from 'lucide-react'
 import { motion } from 'framer-motion'
 import PWAInstallPrompt from './PWAInstallPrompt'
@@ -34,6 +35,7 @@ const sidebarNavItems: NavItem[] = [
   { view: 'dashboard', label: 'Dashboard', icon: LayoutDashboard },
   { view: 'invoices', label: 'Invoices', icon: FileText },
   { view: 'create-invoice', label: 'Create Invoice', icon: PlusCircle },
+  { view: 'inventory', label: 'Inventory (Stock)', icon: Package },
   { view: 'customers', label: 'Customers', icon: Users },
   { view: 'reports', label: 'Reports', icon: BarChart3 },
   { view: 'recurring', label: 'Recurring', icon: RefreshCw },

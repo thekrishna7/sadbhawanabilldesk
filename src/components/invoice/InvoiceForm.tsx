@@ -17,6 +17,7 @@ import {
   Landmark,
   AlertCircle,
   ArrowRight,
+  Package,
 } from 'lucide-react'
 import { format, addDays } from 'date-fns'
 
@@ -25,6 +26,7 @@ import { numberToWords } from '@/lib/numberToWords'
 import { CURRENCIES, getCurrencySymbol } from '@/lib/currency'
 import { useAppStore } from '@/stores/appStore'
 import { toast } from 'sonner'
+import InventoryPickerModal from '@/components/inventory/InventoryPickerModal'
 
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
@@ -106,6 +108,7 @@ export default function InvoiceForm() {
 
   const [customers, setCustomers] = useState<Customer[]>([])
   const [showCustomerSuggestions, setShowCustomerSuggestions] = useState(false)
+  const [showInventoryPicker, setShowInventoryPicker] = useState(false)
   const [customTaxIndex, setCustomTaxIndex] = useState<number | null>(null)
   const [customTaxValues, setCustomTaxValues] = useState<Record<number, string>>({})
   const [isSubmitting, setIsSubmitting] = useState(false)
@@ -114,6 +117,20 @@ export default function InvoiceForm() {
   const [recurringTemplateName, setRecurringTemplateName] = useState('')
   const [recurringFrequency, setRecurringFrequency] = useState('monthly')
   const autoSaveTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
+
+  const handleSelectFromInventory = (selectedItems: InvoiceItemForm[]) => {
+    const currentItems = form.getValues('items')
+    if (
+      currentItems.length === 1 &&
+      (!currentItems[0].description || currentItems[0].description.trim() === '') &&
+      (Number(currentItems[0].rate) || 0) === 0
+    ) {
+      form.setValue('items', selectedItems, { shouldDirty: true })
+    } else {
+      selectedItems.forEach(item => append(item))
+    }
+  }
+
 
   // Profile verification state
   const [profileLoading, setProfileLoading] = useState(true)
@@ -1018,15 +1035,27 @@ export default function InvoiceForm() {
               })}
             </div>
 
-            <Button
-              type="button"
-              variant="outline"
-              onClick={addItem}
-              className="mt-4 w-full border-dashed border-emerald-300 text-emerald-600 hover:bg-emerald-50 hover:text-emerald-700 dark:hover:bg-emerald-950 dark:border-emerald-700 dark:text-emerald-400 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/30 dark:to-teal-950/30"
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Add Item
-            </Button>
+            <div className="mt-4 flex flex-col sm:flex-row gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={addItem}
+                className="flex-1 border-dashed border-emerald-300 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-50 dark:hover:bg-emerald-950 dark:border-emerald-700 bg-gradient-to-r from-emerald-50/50 to-teal-50/50 dark:from-emerald-950/30 dark:to-teal-950/30"
+              >
+                <Plus className="mr-2 h-4 w-4" />
+                Add Custom Item
+              </Button>
+
+              <Button
+                type="button"
+                onClick={() => setShowInventoryPicker(true)}
+                className="flex-1 bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-700 hover:to-teal-700 text-white font-medium shadow-sm"
+              >
+                <Package className="mr-2 h-4 w-4" />
+                Add from Inventory
+              </Button>
+            </div>
+
           </CardContent>
         </Card>
 
@@ -1269,6 +1298,13 @@ export default function InvoiceForm() {
         onOpenChange={setShowTemplates}
         currentTemplate={selectedTemplate}
         onTemplateChange={(template) => setSelectedTemplate(template)}
+      />
+
+      {/* Inventory Picker Dialog */}
+      <InventoryPickerModal
+        open={showInventoryPicker}
+        onOpenChange={setShowInventoryPicker}
+        onSelectItems={handleSelectFromInventory}
       />
     </motion.div>
   )

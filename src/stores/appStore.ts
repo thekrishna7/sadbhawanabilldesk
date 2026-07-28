@@ -17,6 +17,8 @@ export type AppView =
   | 'recycle-bin'
   | 'notifications'
   | 'recurring'
+  | 'inventory'
+
 
 export interface UserDetails {
   id: string
