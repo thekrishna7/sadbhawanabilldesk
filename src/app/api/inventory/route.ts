@@ -1,12 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { db } from '@/lib/db'
 
+let isTableChecked = false
+
+async function ensureInventoryTable() {
+  if (isTableChecked) return
+  try {
+    await db.$executeRawUnsafe(`
+      CREATE TABLE IF NOT EXISTS "InventoryItem" (
+        "id" TEXT NOT NULL,
+        "userId" TEXT NOT NULL,
+        "name" TEXT NOT NULL DEFAULT '',
+        "sku" TEXT NOT NULL DEFAULT '',
+        "hsnCode" TEXT NOT NULL DEFAULT '',
+        "unit" TEXT NOT NULL DEFAULT 'Pcs',
+        "rate" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "purchaseRate" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "taxPercent" DOUBLE PRECISION NOT NULL DEFAULT 18,
+        "stock" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "minStock" DOUBLE PRECISION NOT NULL DEFAULT 0,
+        "description" TEXT NOT NULL DEFAULT '',
+        "createdAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        "updatedAt" TIMESTAMP(3) NOT NULL DEFAULT CURRENT_TIMESTAMP,
+        CONSTRAINT "InventoryItem_pkey" PRIMARY KEY ("id"),
+        CONSTRAINT "InventoryItem_userId_fkey" FOREIGN KEY ("userId") REFERENCES "User"("id") ON DELETE CASCADE ON UPDATE CASCADE
+      );
+    `)
+    isTableChecked = true
+  } catch (err) {
+    console.warn('[INVENTORY_TABLE_CREATE_WARN]', err)
+  }
+}
+
 export async function GET(req: NextRequest) {
   try {
+    await ensureInventoryTable()
     const { searchParams } = new URL(req.url)
     const userId = searchParams.get('userId')
     const search = searchParams.get('search')
     const filter = searchParams.get('filter') // 'all', 'low_stock', 'out_of_stock'
+
+
 
     if (!userId) {
       return NextResponse.json({ error: 'userId is required' }, { status: 400 })
@@ -49,14 +83,15 @@ export async function GET(req: NextRequest) {
         outOfStockCount,
       },
     })
-  } catch (error) {
+  } catch (error: any) {
     console.error('[INVENTORY_GET_ERROR]', error)
-    return NextResponse.json({ error: 'Failed to fetch inventory items' }, { status: 500 })
+    return NextResponse.json({ error: error?.message || 'Failed to fetch inventory items' }, { status: 500 })
   }
 }
 
 export async function POST(req: NextRequest) {
   try {
+    await ensureInventoryTable()
     const data = await req.json()
     const {
       userId,
@@ -76,6 +111,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'userId and name are required' }, { status: 400 })
     }
 
+    // Verify user exists in database to prevent foreign key failure
+    const userExists = await db.user.findUnique({ where: { id: userId } })
+    if (!userExists) {
+      return NextResponse.json({ error: 'User account not found. Please log out and log in again.' }, { status: 400 })
+    }
+
     const item = await db.inventoryItem.create({
       data: {
         userId,
@@ -93,9 +134,10 @@ export async function POST(req: NextRequest) {
     })
 
     return NextResponse.json({ item })
-  } catch (error) {
+  } catch (error: any) {
     console.error('[INVENTORY_POST_ERROR]', error)
-    return NextResponse.json({ error: 'Failed to create inventory item' }, { status: 500 })
+    const errorMsg = error?.message || 'Failed to create inventory item'
+    return NextResponse.json({ error: errorMsg, details: error }, { status: 500 })
   }
 }
 

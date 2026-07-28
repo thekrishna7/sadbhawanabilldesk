@@ -221,8 +221,8 @@ export default function InventoryPage() {
       } else {
         toast.error(result.error || 'Failed to save inventory item')
       }
-    } catch {
-      toast.error('An error occurred while saving item')
+    } catch (err: any) {
+      toast.error(err?.message || 'An error occurred while saving item')
     } finally {
       setIsSubmitting(false)
     }
